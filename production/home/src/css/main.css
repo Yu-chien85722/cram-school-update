@@ -1,0 +1,6 @@
+.navbar{
+    background-color:#ECF5FF;
+}
+.nav-item >.nav-link:hover{
+    color:#FF9224;
+}
