@@ -1,59 +1,55 @@
-import * as bootstrap from "bootstrap";
+import * as bootstrap from 'bootstrap';
 
 export const initBootstrap = function (config) {
   // Enabling tooltips
   if (config.tooltip) {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    //console.log(tooltipTriggerList);
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    // console.log(tooltipTriggerList);
+    tooltipTriggerList.map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
   }
 
   // Enabling popovers
   if (config.popover) {
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-    //console.log(popoverTriggerList);
-    popoverTriggerList.map(function (popoverTriggerEl) {
-      return new bootstrap.Popover(popoverTriggerEl, {})
-    })
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    // console.log(popoverTriggerList);
+    popoverTriggerList.map((popoverTriggerEl) => new bootstrap.Popover(popoverTriggerEl, {}));
   }
 
   // Enabling toasts
   if (config.toasts) {
-    const toastTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="toast"]'))
+    const toastTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="toast"]'));
 
-    toastTriggerList.map(function (toastTriggerEl) {
+    toastTriggerList.map((toastTriggerEl) => {
       // Define the target property
-      let toastTarget = null
+      let toastTarget = null;
 
-      if ("A" === toastTriggerEl.nodeName) {
-        toastTarget = toastTriggerEl.href || null
+      if (toastTriggerEl.nodeName === 'A') {
+        toastTarget = toastTriggerEl.href || null;
 
         if (toastTarget.includes('#')) {
-          toastTarget = `#${toastTarget.split("#").pop()}`
+          toastTarget = `#${toastTarget.split('#').pop()}`;
         } else {
-          return
+          return;
         }
-      } else if ("BUTTON" === toastTriggerEl.nodeName) {
-        toastTarget = toastTriggerEl.dataset.bsTarget || null
+      } else if (toastTriggerEl.nodeName === 'BUTTON') {
+        toastTarget = toastTriggerEl.dataset.bsTarget || null;
       }
 
       // Check if the target exists
       const toastTargetEl = document.querySelector(toastTarget);
 
       if (!toastTargetEl) {
-        return
+        return;
       }
 
       // Init toast
-      const toast = new bootstrap.Toast(toastTargetEl)
+      const toast = new bootstrap.Toast(toastTargetEl);
 
       // Add click even to trigger
-      toastTriggerEl.addEventListener("click", function (event) {
+      toastTriggerEl.addEventListener('click', (event) => {
         event.preventDefault();
-        toast.show()
-      })
-    })
+        toast.show();
+      });
+    });
   }
-}
+};

@@ -1,14 +1,20 @@
+// loader: 1.install 2.設定、配對
+// plugin: 1.install 2. import to config.js 3. 設定
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssminimizerWebpackPlugin = require('css-minimizer-webpack-plugin');
+const EslintWebpackPlugin = require('eslint-webpack-plugin');
+const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
 module.exports = {
-    mode:"development",
+    mode:"production",
 
     entry:"./src/index.js",
 
     output:{
-        filename:"[name].js",
-        path:path.resolve(__dirname,"dist")
+        filename:"[name].[contenthash:10].js",
+        path:path.resolve(__dirname,"dist"),
+        chunkFilename:'[name]_chunk.js',
     },
 
     devServer:{
@@ -21,75 +27,71 @@ module.exports = {
     module:{
         rules:[
             {
-                /*  
-                    RegExp:/pattern/
-                    .前面的"\"=> 讓『.』成為文字的『.』 而不是任意字母
-                    （｜） ＝> 或
-                    ＄ ＝>結尾字
-                    i => 不分大小寫
-                    ＝> 檔案名結尾為 .jpg or .png or .jpeg or.gif 不分大小寫 使用 asset/resource 打包
-                */
-                test:/\.(jpg|png|jpeg|gif)$/i,
-                type:"asset/resource",
-                generator:{
-                    filename:"images/[hash:10][ext]"
-                }
-            },
-            /*{
-                exclude:/\.(jpg|png|jpeg|gif|js|htm|css)$/i,
-                exclude:/node_modules/,
-                type:"asset/resource",
-                generator:{
-                    filename:"files/[hash:10][ext]"
-                }
-            },*/
-            {
-                test:/\.css$/i,
-                use:[
-                    //"style-loader",
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                    // 上線時需追加的 css 相容性
+                oneOf:[
                     {
-                        loader:"postcss-loader",
-                        options:{
-                            postcssOptions:{
-                                plugins:['autoprefixer']
-                            }
-                        }
-                    }
-                ]
-            },
-            {
-                test:/\.s[ac]ss$/i,
-                use:[
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                    // 上線時需追加的 css 相容性
-                    {
-                        loader:"postcss-loader",
-                        options:{
-                            postcssOptions:{
-                                plugins:['autoprefixer']
-                            }
+                        /*  
+                            RegExp:/pattern/
+                            .前面的"\"=> 讓『.』成為文字的『.』 而不是任意字母
+                            （｜） ＝> 或
+                            ＄ ＝>結尾字
+                            i => 不分大小寫
+                            ＝> 檔案名結尾為 .jpg or .png or .jpeg or.gif 不分大小寫 使用 asset/resource 打包
+                        */
+                        test:/\.(jpg|png|jpeg|gif)$/i,
+                        type:"asset/resource",
+                        generator:{
+                            filename:"images/[hash:10][ext]"
                         }
                     },
-                    "sass-loader"
-                ]
-
-            },
-            {
-                test: /\.(m?js|jsx)$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: [
-                            '@babel/preset-react',
-                            '@babel/preset-env'
+                    {
+                        test:/\.css$/i,
+                        use:[
+                            MiniCssExtractPlugin.loader,
+                            "css-loader",
+                            // 上線時需追加的 css 相容性
+                            {
+                                loader:"postcss-loader",
+                                options:{
+                                    postcssOptions:{
+                                        plugins:['autoprefixer']
+                                    }
+                                }
+                            }
                         ]
+                    },
+                    {
+                        test:/\.s[ac]ss$/i,
+                        use:[
+                            MiniCssExtractPlugin.loader,
+                            "css-loader",
+                            // 上線時需追加的 css 相容性
+                            {
+                                loader:"postcss-loader",
+                                options:{
+                                    postcssOptions:{
+                                        plugins:['autoprefixer']
+                                    }
+                                }
+                            },
+                            "sass-loader"
+                        ]
+        
+                    },
+                    {
+                        test: /\.(m?js|jsx)$/,
+                        exclude: /node_modules/,
+                        use: {
+                            loader: "babel-loader",
+                            options: {
+                                presets: [
+                                    '@babel/preset-react',
+                                    '@babel/preset-env'
+                                ],
+                                cacheDirectory:true
+                            }
+                        }
                     }
-                }
+                ]
             }
         ]
     },
@@ -97,17 +99,48 @@ module.exports = {
     // plugins 設置
     plugins:[
         new HtmlWebpackPlugin({
-            template:"./src/index.htm"
+            template:"./src/index.htm",
+            filename:"home.html",
+            // 崩塌空白內容，delete 空格
+            collapseWhitespace: true,
+            // 移除註解
+            removeComments: true,
+            removeRedundantAttributes: true,
+            removeScriptTypeAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            useShortDoctype: true
         }),
         new MiniCssExtractPlugin({
-            filename:"css/[name].css"
+            filename:"css/[name].[contenthash:10].css"
+        }),
+        new CssminimizerWebpackPlugin(),
+        //new EslintWebpackPlugin({fix:true}),
+        new WorkboxWebpackPlugin.GenerateSW({
+            /* 
+              1. 快速啟用 serviceWork
+              2. 刪除舊的 serviceWork
+              -> 生成一個 service-worker的配置檔 >>service-worker.js
+            */
+            clientsClaim:true,
+            skipWaiting:true
         })
     ],
 
-    devtool:"eval-source-map",
+    devtool:"cheap-module-source-map",
 
     resolve:{
         modules:["node_modules"]
+    },
+
+    optimization:{
+        splitChunks:{
+            chunks:"all"
+        }
+    },
+
+    externals:{
+        react:"React",
+        reactDom:"ReactDOM"
     }
 
 }
